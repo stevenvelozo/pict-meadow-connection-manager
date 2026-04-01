@@ -1,0 +1,45 @@
+# Bookstore Connections Example
+#
+# Start databases:
+#   docker compose up -d
+#
+# Then run the app:
+#   npm start
+#
+# Browse to http://localhost:8891
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: mcm-example-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "1234567890"
+      MYSQL_DATABASE: bookstore
+    ports:
+      - "23306:3306"
+    volumes:
+      - ../../../../meadow/meadow-connection-mysql/test/docker-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p1234567890"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  postgresql:
+    image: postgres:16
+    container_name: mcm-example-postgresql
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: testdb
+    ports:
+      - "25432:5432"
+    volumes:
+      - ../../../../meadow/meadow-connection-postgresql/test/docker-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s

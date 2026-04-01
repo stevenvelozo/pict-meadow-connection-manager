@@ -1,0 +1,36 @@
+{
+	"name": "pict-mcm-example-bookstore-connections",
+	"version": "0.0.1",
+	"description": "Example: manage connections to the meadow bookstore test databases (MySQL, PostgreSQL, SQLite)",
+	"main": "source/Pict-Application-Connections.js",
+	"scripts": {
+		"start": "node server.js",
+		"build": "npx quack build",
+		"docker-up": "docker compose up -d",
+		"docker-down": "docker compose down",
+		"test": "echo \"Run: docker compose up -d && npm start\" && exit 0",
+		"test-browser": "npx mocha test/Browser_Integration_tests.js -u tdd --exit --timeout 120000"
+	},
+	"author": "Steven Velozo <steven@velozo.com>",
+	"license": "MIT",
+	"dependencies": {
+		"fable": "^3.1.67",
+		"meadow-connection-manager": "^1.0.0",
+		"meadow-connection-mysql": "^1.0.15",
+		"meadow-connection-postgresql": "^1.0.2",
+		"meadow-connection-sqlite": "^1.0.18",
+		"orator": "^6.0.4",
+		"orator-serviceserver-restify": "^2.0.9",
+		"pict": "^1.0.361",
+		"pict-application": "^1.0.33",
+		"pict-meadow-connection-manager": "^1.0.0",
+		"pict-provider": "^1.0.12",
+		"pict-view": "^1.0.67",
+		"restify": "^11.1.0"
+	},
+	"devDependencies": {
+		"chai": "^4.5.0",
+		"puppeteer": "^24.8.0",
+		"quackage": "^1.0.65"
+	}
+}

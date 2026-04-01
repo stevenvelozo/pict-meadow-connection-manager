@@ -1,0 +1,52 @@
+{
+	"Name": "Meadow Connection Manager Example",
+	"Hash": "MCM-Example",
+
+	"pict_configuration":
+	{
+		"Product": "MCM-Example",
+		"MeadowConnections":
+		[
+			{
+				"Name": "Bookstore MySQL",
+				"Type": "MySQL",
+				"Config":
+				{
+					"server": "127.0.0.1",
+					"port": 23306,
+					"user": "root",
+					"password": "1234567890",
+					"database": "bookstore",
+					"connectionLimit": 5
+				},
+				"Status": "unknown"
+			},
+			{
+				"Name": "Bookstore PostgreSQL",
+				"Type": "PostgreSQL",
+				"Config":
+				{
+					"server": "127.0.0.1",
+					"port": 25432,
+					"user": "postgres",
+					"password": "testpassword",
+					"database": "testdb"
+				},
+				"Status": "unknown"
+			},
+			{
+				"Name": "In-Memory SQLite",
+				"Type": "SQLite",
+				"Config":
+				{
+					"SQLiteFilePath": ":memory:"
+				},
+				"Status": "unknown"
+			}
+		]
+	},
+
+	"DefaultAppData":
+	{
+	}
+}

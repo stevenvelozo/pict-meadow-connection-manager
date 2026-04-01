@@ -1,0 +1,32 @@
+{
+	"name": "pict-meadow-connection-manager",
+	"version": "1.0.0",
+	"description": "Browser-safe Pict provider for meadow database connection configuration. No server-side database driver dependencies.",
+	"main": "source/Pict-Meadow-Connection-Manager.js",
+	"scripts": {
+		"start": "node source/Pict-Meadow-Connection-Manager.js",
+		"test": "npx quack test",
+		"build": "npx quack build"
+	},
+	"mocha": {
+		"diff": true,
+		"extension": ["js"],
+		"package": "./package.json",
+		"reporter": "spec",
+		"slow": "75",
+		"timeout": "5000",
+		"ui": "tdd",
+		"watch-files": ["source/**/*.js", "test/**/*.js"]
+	},
+	"keywords": ["pict", "meadow", "connection", "configuration", "browser"],
+	"author": "Steven Velozo <steven@velozo.com>",
+	"license": "MIT",
+	"dependencies": {
+		"fable-serviceproviderbase": "^3.0.19",
+		"pict-provider": "^1.0.12",
+		"pict-view": "^1.0.67"
+	},
+	"devDependencies": {
+		"quackage": "^1.0.65"
+	}
+}
