@@ -27,6 +27,6 @@
 		"pict-view": "^1.0.67"
 	},
 	"devDependencies": {
-		"quackage": "^1.0.65"
+		"quackage": "^1.1.0"
 	}
 }
