@@ -1,0 +1,7 @@
+{
+	"Name": "pict-meadow-connection-manager",
+	"Version": "1.0.0",
+	"Description": "Browser-safe Pict provider for meadow database connection configuration. No server-side database driver dependencies.",
+	"GeneratedAt": "2026-04-10T17:24:15.568Z",
+	"GitCommit": "94851ff"
+}

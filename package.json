@@ -10,15 +10,26 @@
 	},
 	"mocha": {
 		"diff": true,
-		"extension": ["js"],
+		"extension": [
+			"js"
+		],
 		"package": "./package.json",
 		"reporter": "spec",
 		"slow": "75",
 		"timeout": "5000",
 		"ui": "tdd",
-		"watch-files": ["source/**/*.js", "test/**/*.js"]
+		"watch-files": [
+			"source/**/*.js",
+			"test/**/*.js"
+		]
 	},
-	"keywords": ["pict", "meadow", "connection", "configuration", "browser"],
+	"keywords": [
+		"pict",
+		"meadow",
+		"connection",
+		"configuration",
+		"browser"
+	],
 	"author": "Steven Velozo <steven@velozo.com>",
 	"license": "MIT",
 	"dependencies": {
@@ -27,6 +38,7 @@
 		"pict-view": "^1.0.67"
 	},
 	"devDependencies": {
+		"pict-docuserve": "^0.1.5",
 		"quackage": "^1.1.0"
 	}
 }
