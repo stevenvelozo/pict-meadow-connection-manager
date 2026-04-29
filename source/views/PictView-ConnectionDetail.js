@@ -1,31 +1,35 @@
 /**
  * PictView-ConnectionDetail
  *
- * Orchestrator view for editing a single connection.
- * Renders name, type selector, status, save/test/cancel buttons.
- * Embeds the appropriate per-type configuration view into
- * #MCM-ConnectionConfig-Container based on the selected type.
+ * Editor for a single named connection.  Owns the persistent shell
+ * fields (Name + Type select + Status badge) and the Save / Test /
+ * Cancel buttons; the per-provider field block is rendered by the
+ * shared `pict-section-connection-form` view into the slot at
+ * `#MCM-ConnectionConfig-Container`.
+ *
+ * Earlier versions of this view dispatched to per-type subclassed
+ * config views (`MCM-ConnectionConfig-MySQL`, …); those are gone.
+ * The shared form view handles every provider type by reading the
+ * schema list the provider injected via `setSchemas()`.
  *
  * @module PictView-ConnectionDetail
  */
-
 'use strict';
 
 const libPictView = require('pict-view');
-const libRegistry = require('../ConnectionTypeRegistry.js');
 
 const _DefaultConfiguration =
 {
-	ViewIdentifier: 'MCM-ConnectionDetail',
-	DefaultRenderable: 'MCM-ConnectionDetail-Container',
-	DefaultDestinationAddress: '#MCM-ConnectionDetail-Container',
+	ViewIdentifier:               'MCM-ConnectionDetail',
+	DefaultRenderable:            'MCM-ConnectionDetail-Container',
+	DefaultDestinationAddress:    '#MCM-ConnectionDetail-Container',
 	DefaultTemplateRecordAddress: 'AppData.MCM.CurrentConnection',
-	AutoInitialize: true,
-	AutoInitializeOrdinal: 0,
-	AutoRender: false,
-	AutoSolveWithApp: false,
-	CSS: false,
-	CSSPriority: 500,
+	AutoInitialize:               true,
+	AutoInitializeOrdinal:        0,
+	AutoRender:                   false,
+	AutoSolveWithApp:             false,
+	CSS:                          false,
+	CSSPriority:                  500,
 
 	Templates:
 	[
@@ -33,48 +37,49 @@ const _DefaultConfiguration =
 			Hash: 'MCM-ConnectionDetail-Container',
 			Template: [
 				'<section class="mcm-connection-detail">',
-				'<header class="mcm-detail-header">',
-				'<h3>Connection Configuration</h3>',
-				'</header>',
-				'<article class="mcm-detail-form">',
-				'<label class="mcm-field">',
-				'<span class="mcm-field-label">Connection Name</span>',
-				"<input type=\"text\" id=\"MCM-ConnectionDetail-Name\" value=\"{~D:Record.Name~}\" onchange=\"{~P~}.views['MCM-ConnectionDetail'].onNameChange(this.value)\" />",
-				'</label>',
-				'<label class="mcm-field">',
-				'<span class="mcm-field-label">Connection Type</span>',
-				"<select id=\"MCM-ConnectionDetail-Type\" onchange=\"{~P~}.views['MCM-ConnectionDetail'].onTypeChange(this.value)\">",
-				'{~TS:MCM-ConnectionDetail-TypeOption:AppData.MCM.ConnectionTypes~}',
-				'</select>',
-				'</label>',
-				'<span class="mcm-conn-status">Status: {~D:Record.Status~}</span>',
-				'<section id="MCM-ConnectionConfig-Container"></section>',
-				'<footer class="mcm-detail-actions">',
-				"<button class=\"mcm-btn mcm-btn-primary\" onclick=\"{~P~}.views['MCM-ConnectionDetail'].onSave()\">Save</button>",
-				"<button class=\"mcm-btn\" onclick=\"{~P~}.views['MCM-ConnectionDetail'].onTest()\">Test Connection</button>",
-				"<button class=\"mcm-btn\" onclick=\"{~P~}.views['MCM-ConnectionDetail'].onCancel()\">Cancel</button>",
-				'</footer>',
-				'</article>',
-				'</section>',
-			].join('\n'),
+					'<header class="mcm-detail-header">',
+						'<h3>Connection Configuration</h3>',
+					'</header>',
+					'<article class="mcm-detail-form">',
+						'<label class="mcm-field">',
+							'<span class="mcm-field-label">Connection Name</span>',
+							"<input type=\"text\" id=\"MCM-ConnectionDetail-Name\" value=\"{~D:Record.Name~}\" onchange=\"{~P~}.views['MCM-ConnectionDetail'].onNameChange(this.value)\" />",
+						'</label>',
+						'<label class="mcm-field">',
+							'<span class="mcm-field-label">Connection Type</span>',
+							"<select id=\"MCM-ConnectionDetail-Type\" onchange=\"{~P~}.views['MCM-ConnectionDetail'].onTypeChange(this.value)\">",
+								'{~TS:MCM-ConnectionDetail-TypeOption:AppData.MCM.ConnectionTypes~}',
+							'</select>',
+						'</label>',
+						'<span class="mcm-conn-status">Status: {~D:Record.Status~}</span>',
+						// pict-section-connection-form renders here
+						'<section id="MCM-ConnectionConfig-Container"></section>',
+						'<footer class="mcm-detail-actions">',
+							"<button class=\"mcm-btn mcm-btn-primary\" onclick=\"{~P~}.views['MCM-ConnectionDetail'].onSave()\">Save</button>",
+							"<button class=\"mcm-btn\" onclick=\"{~P~}.views['MCM-ConnectionDetail'].onTest()\">Test Connection</button>",
+							"<button class=\"mcm-btn\" onclick=\"{~P~}.views['MCM-ConnectionDetail'].onCancel()\">Cancel</button>",
+						'</footer>',
+					'</article>',
+				'</section>'
+			].join('\n')
 		},
 		{
 			Hash: 'MCM-ConnectionDetail-TypeOption',
-			Template: '<option value="{~D:Record.TypeName~}">{~D:Record.TypeName~}</option>',
-		},
+			Template: '<option value="{~D:Record.TypeName~}">{~D:Record.DisplayName~}</option>'
+		}
 	],
 
 	Renderables:
 	[
 		{
-			RenderableHash: 'MCM-ConnectionDetail-Container',
-			TemplateHash: 'MCM-ConnectionDetail-Container',
+			RenderableHash:            'MCM-ConnectionDetail-Container',
+			TemplateHash:              'MCM-ConnectionDetail-Container',
 			ContentDestinationAddress: '#MCM-ConnectionDetail-Container',
-			RenderMethod: 'replace',
-		},
+			RenderMethod:              'replace'
+		}
 	],
 
-	Manifests: {},
+	Manifests: {}
 };
 
 class PictViewConnectionDetail extends libPictView
@@ -86,136 +91,126 @@ class PictViewConnectionDetail extends libPictView
 	}
 
 	/**
-	 * After the detail container renders, set the type selector value
-	 * and render the appropriate per-type configuration view.
+	 * After the detail container renders, sync the type selector and
+	 * hand the schemas + active provider + saved values to the shared
+	 * form view.
 	 */
-	onAfterRender()
+	onAfterRender(pRenderable, pAddress, pRecord, pContent)
 	{
 		let tmpProvider = this.pict.providers.MeadowConnectionManager;
-		if (!tmpProvider)
+		let tmpFormView = this.pict.views['PictSection-ConnectionForm'];
+		if (!tmpProvider || !tmpFormView)
 		{
-			return true;
+			return super.onAfterRender(pRenderable, pAddress, pRecord, pContent);
 		}
 
 		let tmpState = tmpProvider._getState();
-		let tmpCurrentType = tmpState.CurrentConnection.Type || 'MySQL';
+		let tmpCurrentType = tmpState.CurrentConnection.Type || (tmpProvider.getAvailableTypes()[0] || '');
 
-		// Set the type selector to the current type
-		this.pict.ContentAssignment.customReadFunction = null;
-		let tmpTypeSelect = (typeof document !== 'undefined') ? document.getElementById('MCM-ConnectionDetail-Type') : null;
-		if (tmpTypeSelect)
+		// Sync the type select's value to the active provider.
+		if (typeof(document) !== 'undefined')
 		{
-			tmpTypeSelect.value = tmpCurrentType;
+			let tmpTypeSelect = document.getElementById('MCM-ConnectionDetail-Type');
+			if (tmpTypeSelect && tmpCurrentType) { tmpTypeSelect.value = tmpCurrentType; }
 		}
 
-		// Render the per-type configuration view
-		this.renderConfigurationView(tmpCurrentType);
+		// Make sure the form has the current schemas, then populate it
+		// with the saved config so the user sees their previous values.
+		tmpFormView.setSchemas(tmpProvider.getSchemas());
+		if (tmpCurrentType)
+		{
+			tmpFormView.setValues(tmpCurrentType, tmpState.CurrentConnection.Config || {});
+		}
 
-		return true;
+		return super.onAfterRender(pRenderable, pAddress, pRecord, pContent);
 	}
 
-	/**
-	 * Render the per-type configuration view for the given type.
-	 *
-	 * @param {string} pTypeName
-	 */
-	renderConfigurationView(pTypeName)
-	{
-		let tmpViewHash = 'MCM-ConnectionConfig-' + pTypeName;
-		let tmpConfigView = this.pict.views[tmpViewHash];
+	// ────────────────────────────────────────────────────────────
+	//  Action handlers
+	// ────────────────────────────────────────────────────────────
 
-		if (tmpConfigView)
-		{
-			tmpConfigView.render();
-		}
-		else
-		{
-			this.log.warn('MCM-ConnectionDetail: no config view found for type ' + pTypeName);
-		}
-	}
-
-	/**
-	 * Handle connection name change.
-	 * @param {string} pNewName
-	 */
 	onNameChange(pNewName)
 	{
 		let tmpProvider = this.pict.providers.MeadowConnectionManager;
-		if (!tmpProvider)
-		{
-			return;
-		}
+		if (!tmpProvider) { return; }
 
 		let tmpState = tmpProvider._getState();
 		tmpState.CurrentConnection.Name = pNewName;
 	}
 
 	/**
-	 * Handle type selector change.
-	 * Rebuilds default config for the new type and re-renders config view.
-	 *
-	 * @param {string} pNewType
+	 * Type-selector change.  Switch the active provider on the shared
+	 * form view and reset CurrentConnection.Config to the new type's
+	 * defaults so old values from the previous type don't leak.
 	 */
 	onTypeChange(pNewType)
 	{
 		let tmpProvider = this.pict.providers.MeadowConnectionManager;
-		if (!tmpProvider)
-		{
-			return;
-		}
+		let tmpFormView = this.pict.views['PictSection-ConnectionForm'];
+		if (!tmpProvider) { return; }
 
 		let tmpState = tmpProvider._getState();
-		tmpState.CurrentConnection.Type = pNewType;
-		tmpState.CurrentConnection.Config = libRegistry.buildDefaultConfig(pNewType);
+		tmpState.CurrentConnection.Type   = pNewType;
+		tmpState.CurrentConnection.Config = tmpProvider.buildDefaultConfig(pNewType);
 
-		this.renderConfigurationView(pNewType);
+		if (tmpFormView)
+		{
+			tmpFormView.setActiveProvider(pNewType);
+			// setActiveProvider re-renders inputs; reseed defaults so
+			// the form reflects the freshly-chosen type's values.
+			tmpFormView.setValues(pNewType, tmpState.CurrentConnection.Config);
+		}
 	}
 
 	/**
-	 * Save the current connection.
+	 * Save: pull the live form values into CurrentConnection.Config,
+	 * validate, then commit to the provider.
 	 */
 	onSave()
 	{
 		let tmpProvider = this.pict.providers.MeadowConnectionManager;
-		if (!tmpProvider)
+		let tmpFormView = this.pict.views['PictSection-ConnectionForm'];
+		if (!tmpProvider) { return; }
+
+		let tmpState = tmpProvider._getState();
+
+		if (tmpFormView && typeof(tmpFormView.getProviderConfig) === 'function')
 		{
-			return;
+			let tmpConnInfo = tmpFormView.getProviderConfig();
+			tmpState.CurrentConnection.Type   = tmpConnInfo.Provider || tmpState.CurrentConnection.Type;
+			tmpState.CurrentConnection.Config = tmpConnInfo.Config   || {};
 		}
 
-		// Validate first
-		let tmpState = tmpProvider._getState();
-		let tmpCurrentType = tmpState.CurrentConnection.Type;
-		let tmpConfigViewHash = 'MCM-ConnectionConfig-' + tmpCurrentType;
-		let tmpConfigView = this.pict.views[tmpConfigViewHash];
-
-		if (tmpConfigView)
+		let tmpValidation = tmpProvider.validateConfig(tmpState.CurrentConnection.Type, tmpState.CurrentConnection.Config);
+		if (!tmpValidation.valid)
 		{
-			let tmpValidation = tmpConfigView.validateConfig();
-			if (!tmpValidation.valid)
-			{
-				this.log.warn('MCM-ConnectionDetail: validation failed: ' + tmpValidation.errors.join(', '));
-				return;
-			}
+			this.log.warn('MCM-ConnectionDetail: validation failed: ' + tmpValidation.errors.join(', '));
+			return;
 		}
 
 		tmpProvider.saveCurrentConnection();
 	}
 
 	/**
-	 * Test the current connection configuration.
+	 * Test: same field-collection step as Save, then dispatch to the
+	 * provider's testConnection helper.
 	 */
 	onTest()
 	{
 		let tmpProvider = this.pict.providers.MeadowConnectionManager;
-		if (!tmpProvider)
-		{
-			return;
-		}
+		let tmpFormView = this.pict.views['PictSection-ConnectionForm'];
+		if (!tmpProvider) { return; }
 
 		let tmpState = tmpProvider._getState();
-		let tmpCurrent = tmpState.CurrentConnection;
 
-		tmpProvider.testConnection(tmpCurrent,
+		if (tmpFormView && typeof(tmpFormView.getProviderConfig) === 'function')
+		{
+			let tmpConnInfo = tmpFormView.getProviderConfig();
+			tmpState.CurrentConnection.Type   = tmpConnInfo.Provider || tmpState.CurrentConnection.Type;
+			tmpState.CurrentConnection.Config = tmpConnInfo.Config   || {};
+		}
+
+		tmpProvider.testConnection(tmpState.CurrentConnection,
 			(pError, pResult) =>
 			{
 				if (pError)
@@ -231,21 +226,14 @@ class PictViewConnectionDetail extends libPictView
 				{
 					tmpState.CurrentConnection.Status = 'Failed';
 				}
-
 				this.render();
 			});
 	}
 
-	/**
-	 * Cancel editing and deselect.
-	 */
 	onCancel()
 	{
 		let tmpProvider = this.pict.providers.MeadowConnectionManager;
-		if (tmpProvider)
-		{
-			tmpProvider.deselectConnection();
-		}
+		if (tmpProvider) { tmpProvider.deselectConnection(); }
 	}
 }
 

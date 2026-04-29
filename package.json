@@ -1,12 +1,13 @@
 {
 	"name": "pict-meadow-connection-manager",
-	"version": "1.0.0",
-	"description": "Browser-safe Pict provider for meadow database connection configuration. No server-side database driver dependencies.",
+	"version": "1.1.0",
+	"description": "Browser-safe Pict provider + list/detail views for managing named meadow database connections. Delegates form rendering to pict-section-connection-form so the per-provider field schemas come from one canonical source (the meadow-connection-* modules).",
 	"main": "source/Pict-Meadow-Connection-Manager.js",
 	"scripts": {
 		"start": "node source/Pict-Meadow-Connection-Manager.js",
-		"test": "npx quack test",
-		"build": "npx quack build"
+		"build": "npx quack build",
+		"test": "npx mocha -u tdd --exit --timeout 10000 test/*_tests.js",
+		"example": "npx quack examples"
 	},
 	"mocha": {
 		"diff": true,
@@ -35,10 +36,28 @@
 	"dependencies": {
 		"fable-serviceproviderbase": "^3.0.19",
 		"pict-provider": "^1.0.12",
-		"pict-view": "^1.0.67"
+		"pict-section-connection-form": "^0.0.1",
+		"pict-view": "^1.0.68"
 	},
 	"devDependencies": {
+		"chai": "^4.3.10",
+		"jsdom": "^25.0.1",
+		"mocha": "^11.0.1",
+		"pict": "^1.0.364",
+		"pict-application": "^1.0.33",
 		"pict-docuserve": "^0.1.5",
-		"quackage": "^1.1.0"
+		"quackage": "^1.1.2"
+	},
+	"overrides": {
+		"braces":               ">=3.0.3",
+		"diff":                 ">=5.2.2",
+		"form-data":            ">=2.5.4",
+		"micromatch":           ">=4.0.8",
+		"minimatch":            ">=5.1.8",
+		"postcss":              ">=8.5.9",
+		"qs":                   ">=6.14.1",
+		"send":                 ">=0.19.0",
+		"serialize-javascript": ">=6.0.2",
+		"tough-cookie":         ">=4.1.3"
 	}
 }
